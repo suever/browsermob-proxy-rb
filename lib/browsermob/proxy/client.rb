@@ -213,6 +213,14 @@ module BrowserMob
       def response_interceptor=(data)
         @resource['interceptor/response'].post data, :content_type => "text/plain"
       end
+
+      def request_filter=(data)
+        @resource['filter/request'].post data, :content_type => 'text/plain'
+      end
+
+      def response_filter=(data)
+        @resource['filter/response'].post data, :content_type => 'text/plain'
+      end
     end # Client
 
   end # Proxy
