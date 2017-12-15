@@ -127,6 +127,10 @@ module BrowserMob
         @resource["auth/basic/#{domain}"].post data.to_json, :content_type => "application/json"
       end
 
+      def empty_dns_cache
+        @resource['dns/cache'].delete
+      end
+
       TIMEOUTS = {
         request: :requestTimeout,
         read: :readTimeout,
