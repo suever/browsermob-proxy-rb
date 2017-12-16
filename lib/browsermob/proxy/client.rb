@@ -4,13 +4,20 @@ module BrowserMob
     class Client
       attr_reader :host, :port
 
-      def self.from(server_url, port = nil)
+      def self.from(server_url, port: nil, bind_address: nil)
         # ActiveSupport may define Object#load, so we can't use MultiJson.respond_to? here.
         sm = MultiJson.singleton_methods.map { |e| e.to_sym }
         decode_method = sm.include?(:load) ? :load : :decode
 
         new_proxy_url = URI.join(server_url, "proxy")
-        new_proxy_url.query = "port=#{port}" if port
+
+        # Build up query parameters for specifying either the proxy port or
+        # the address to bind to
+        query_params = {}
+        query_params[:port] = port if port
+        query_params[:bindAddress] = bind_address if bind_address
+
+        new_proxy_url.query = URI.encode_www_form(query_params)
 
         port = MultiJson.send(decode_method,
           RestClient.post(new_proxy_url.to_s, '')
@@ -127,6 +134,10 @@ module BrowserMob
         @resource["auth/basic/#{domain}"].post data.to_json, :content_type => "application/json"
       end
 
+      def empty_dns_cache
+        @resource['dns/cache'].delete
+      end
+
       TIMEOUTS = {
         request: :requestTimeout,
         read: :readTimeout,
@@ -208,6 +219,14 @@ module BrowserMob
 
       def response_interceptor=(data)
         @resource['interceptor/response'].post data, :content_type => "text/plain"
+      end
+
+      def request_filter=(data)
+        @resource['filter/request'].post data, :content_type => 'text/plain'
+      end
+
+      def response_filter=(data)
+        @resource['filter/response'].post data, :content_type => 'text/plain'
       end
     end # Client
 
